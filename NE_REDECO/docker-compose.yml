@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: redeco_web
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mapeamos la raíz local al contenedor para garantizar que 'db.sqlite3' 
+      # y la carpeta 'backend/data/' persistan e interactúen con el host.
+      - .:/app
+    working_dir: /app/NE_REDECO
+    # Ejecutamos las migraciones (si aplican) y luego levantamos Gunicorn
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:8000 NE_REDECO.wsgi:application"
