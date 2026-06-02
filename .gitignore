@@ -1,1 +1,6 @@
-REDECO/
+**/venv/
+**/__pycache__/
+*.pyc
+*.sqlite3
+# Ignorar tokens de acceso confidenciales
+*.txt
