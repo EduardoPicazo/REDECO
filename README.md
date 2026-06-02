@@ -9,14 +9,14 @@ Análisis, modelado e implementación de un sistema web integral de gestión y a
 El sistema se diseñó bajo un enfoque desacoplado de tres capas, garantizando la separación de responsabilidades y la integridad transaccional:
 
 - **Frontend (Presentación):** React.js 18 (TypeScript) + Vite + Tailwind CSS. Diseñado como una Single Page Application (SPA) responsiva y reactiva.
-- **Backend (Lógica de Negocio):** Node.js + NestJS Framework. Implementa controladores REST estructurados, interceptores de seguridad globales y servicios asíncronos orientados a eventos.
-- **Base de Datos (Persistencia):** MySQL 8.0 operando bajo el motor transaccional InnoDB con un nivel de aislamiento `SERIALIZABLE` para evitar colisiones de folios.
+- **Backend (Lógica de Negocio):** Python 3.x + Django Framework + Django REST Framework (DRF). Implementa vistas de API estructuradas (APIViews), serializadores robustos, middlewares de seguridad globales y servicios asíncronos orientados a eventos utilizando `requests` o `httpx`.
+- **Base de Datos (Persistencia):** MySQL 8.0 operando bajo el motor transaccional InnoDB con un nivel de aislamiento `SERIALIZABLE` gestionado mediante el ORM de Django (`select_for_update`) para evitar colisiones de folios.
 
 ---
 
 ## 🗄️ Modelo de Datos (Esquema Relacional)
 
-El sistema cuenta con un motor relacional sólido que asegura la consistencia ACID. A continuación se detalla la estructura base de las tablas principales:
+El sistema cuenta con un motor relacional sólido que asegura la consistencia ACID. A continuación se detalla la estructura base de las tablas principales gestionadas por los modelos de Django:
 
 - `socios`: Indexada mediante el RFC como clave unívoca. Vinculada obligatoriamente al catálogo SEPOMEX.
 - `consultas`: Registra las reclamaciones utilizando un Folio Único Temporal (`YYMMXXXX`) calculado síncronamente.
@@ -53,15 +53,19 @@ La comunicación entre el cliente y el servidor se realiza mediante una interfaz
 
 ```text
 redeco-condusef/
-├── backend/                  # Código fuente del Servidor (NestJS)
-│   ├── src/
-│   │   ├── auth/             # Gestión de seguridad y JWT externo
-│   │   ├── socios/           # Módulo core de administración de socios
-│   │   ├── consultas/        # Lógica de folios y temporalidad fiscal
-│   │   ├── envios/           # Serializador y cliente HTTP para CONDUSEF
-│   │   └── database/         # Migraciones, entities (TypeORM) y seeds
-│   ├── test/                 # Pruebas unitarias y de integración (Jest)
-│   └── .env.example          # Plantilla de configuración ambiental
+├── NE_REDECO/                # Directorio raíz del proyecto Django Backend
+│   ├── NE_REDECO/            # Configuración global del proyecto (settings, urls, wsgi)
+│   │   ├── __init__.py
+│   │   ├── settings.py       # Configuración de BD MySQL y Apps instaladas
+│   │   └── urls.py           # Enrutador global de la API
+│   ├── apps/                 # Aplicaciones modulares de Django
+│   │   ├── auth_condusef/    # Gestión de seguridad y JWT externo
+│   │   ├── socios/           # Módulo de administración de socios y SEPOMEX
+│   │   ├── consultas/        # Lógica de folios únicos y temporalidad
+│   │   └── envios/           # Serializadores y despacho HTTP a CONDUSEF
+│   ├── data/                 # Catálogos maestros en bruto (Excel/CSV de profesores)
+│   ├── manage.py             # Utilidad de comandos de Django
+│   └── requirements.txt      # Dependencias del proyecto Python
 ├── frontend/                 # Código fuente del Cliente (React.js)
 │   ├── src/
 │   │   ├── components/       # Componentes UX/UI (Consola de Errores, Tablas)
@@ -73,7 +77,64 @@ redeco-condusef/
 
 ## 📦 Instalación y Configuración
 
+Sigue estos pasos para levantar el proyecto en tu entorno local:
+
 ### 1. Clonar el repositorio
 ```bash
-git clone [https://github.com/TU_USUARIO/TU_REPOSITORIO.git](https://github.com/TU_USUARIO/TU_REPOSITORIO.git)
-cd TU_REPOSITORIO
+git clone https://github.com/EduardoPicazo/REDECO.git
+cd REDECO-1
+```
+
+### 2. 🚀 Inicialización del Proyecto
+Enciende el entorno virtual interno para cargar todas las dependencias (como Django y Pandas):
+```bash
+.\NE_REDECO\venv\Scripts\activate
+```
+
+### 3. 📦 Base de Datos y Migraciones
+Posiciónate en el directorio de Django y estructura las tablas (MySQL/SQLite) mediante:
+```bash
+cd NE_REDECO
+python manage.py migrate
+```
+
+### 4. ⚡ Carga Masiva de Catálogos (CONDUSEF y SEPOMEX)
+Ejecuta nuestro comando personalizado de optimización para poblar la base de datos:
+```bash
+python manage.py cargar_catalogos
+```
+*Nota de rendimiento:* Este script procesa **más de 150,000 registros en segundos** trabajando directamente en la memoria RAM de manera atómica, logrando así evitar cualquier cuello de botella por escrituras excesivas en el disco.
+
+### 5. 🖥️ Ver la Demo de Búsqueda (MVP)
+Levanta el servidor local de desarrollo:
+```bash
+python manage.py runserver
+```
+Abre tu navegador y dirígete a:
+**[http://127.0.0.1:8000/demo/](http://127.0.0.1:8000/demo/)**
+
+Ahí podrás interactuar con el MVP funcional y rápido, con una interfaz basada en la identidad visual de UCISA.
+
+---
+
+## 🐳 Despliegue con Docker (Recomendado)
+
+Para evitar configuraciones locales complejas de Python y garantizar la ejecucion de la misma versión del código y base de datos con las dependencias exactas, este proyecto cuenta con --
+**Dockerización completa**.
+
+### Requisitos Previos
+- Tener instalado [Docker Desktop](https://www.docker.com/products/docker-desktop/) en tu máquina.
+
+### Levantar el Proyecto con un Solo Comando
+Abre tu terminal en la raíz del proyecto (`REDECO-1`) y ejecuta:
+```bash
+docker compose up --build
+```
+Este comando automáticamente:
+1. Descargará un sistema optimizado ligero (`python:3.12-slim`).
+2. Instalará internamente todas las dependencias exactas (Django, Pandas, Openpyxl, Gunicorn, etc.).
+3. Ejecutará las migraciones.
+4. Montará de forma inteligente tu archivo `db.sqlite3` local (vía volúmenes) para que los más de 150,000 registros y la base de datos persistan sin borrarse al apagar el contenedor.
+5. Encenderá el servidor de producción **Gunicorn** en el puerto `8000`.
+
+Una vez que la terminal indique que está escuchando conexiones, entra a **[http://127.0.0.1:8000/demo/](http://127.0.0.1:8000/demo/)** para interactuar de inmediato con el sistema.
