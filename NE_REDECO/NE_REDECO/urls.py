@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from apps.consultas.views import demo_busqueda
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('demo/', demo_busqueda, name='demo_busqueda'),
 ]

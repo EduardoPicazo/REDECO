@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Búsqueda</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">REDECO MVP - Búsqueda de Catálogos</span>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="GET" action="{% url 'demo_busqueda' %}" class="row g-3">
+                <div class="col-md-5">
+                    <label for="cp" class="form-label">Código Postal</label>
+                    <input type="text" class="form-control" id="cp" name="cp" value="{{ cp }}" placeholder="Ej. 20000">
+                </div>
+                <div class="col-md-5">
+                    <label for="producto" class="form-label">Producto / Servicio</label>
+                    <input type="text" class="form-control" id="producto" name="producto" value="{{ producto }}" placeholder="Ej. Tarjeta de crédito">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if cp %}
+    <h4 class="mb-3">Resultados SEPOMEX (CP: {{ cp }})</h4>
+    <div class="table-responsive bg-white shadow-sm rounded mb-4">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>CP</th>
+                    <th>Estado</th>
+                    <th>Municipio</th>
+                    <th>Colonia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in resultados_sepomex %}
+                <tr>
+                    <td>{{ item.codigo_postal }}</td>
+                    <td>{{ item.descripcion_entidad_federativa }}</td>
+                    <td>{{ item.descripcion_delegacion_municipio }}</td>
+                    <td>{{ item.descripcion_colonia }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-3">No se encontraron resultados para el código postal ingresado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if producto %}
+    <h4 class="mb-3">Resultados Productos/Causas (Búsqueda: {{ producto }})</h4>
+    <div class="table-responsive bg-white shadow-sm rounded">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Clave Prod.</th>
+                    <th>Producto</th>
+                    <th>Subproducto</th>
+                    <th>Causas Asociadas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in resultados_productos %}
+                <tr>
+                    <td>{{ item.clave_producto }}</td>
+                    <td>{{ item.producto }}</td>
+                    <td>{{ item.subproducto|default:"-" }}</td>
+                    <td>
+                        <ul class="mb-0 ps-3">
+                        {% for causa in item.causas.all %}
+                            <li>{{ causa.descripcion_causa }}</li>
+                        {% empty %}
+                            <li class="text-muted">Sin causas registradas</li>
+                        {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-3">No se encontraron productos que coincidan con la búsqueda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Bootstrap Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
