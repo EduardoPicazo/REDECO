@@ -79,7 +79,13 @@ class Socio(models.Model):
     clave_condusef = models.CharField(max_length=50, unique=True, verbose_name="Clave CONDUSEF")
     nombre_institucion = models.CharField(max_length=255, verbose_name="Nombre de la Institución")
     tipo_entidad = models.CharField(max_length=50, choices=TIPO_ENTIDAD_CHOICES, verbose_name="Tipo de Entidad")
+    
+    # Nuevos campos de ubicación
+    codigo_postal = models.CharField(max_length=5, blank=True, null=True, verbose_name="Código Postal")
     estado_republica = models.CharField(max_length=50, choices=ESTADOS_CHOICES, verbose_name="Estado de la República")
+    municipio = models.CharField(max_length=150, blank=True, null=True, verbose_name="Delegación o Municipio")
+    colonia = models.CharField(max_length=150, blank=True, null=True, verbose_name="Colonia")
+    
     estatus = models.CharField(max_length=15, choices=ESTATUS_CHOICES, default='Activo', verbose_name="Estatus")
     fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Registro")
 
