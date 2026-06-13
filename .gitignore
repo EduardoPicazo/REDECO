@@ -4,3 +4,6 @@
 *.sqlite3
 # Ignorar tokens de acceso confidenciales
 *.txt
+
+venv/
+
