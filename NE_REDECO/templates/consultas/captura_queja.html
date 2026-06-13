@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Captura de Quejas - UCISA{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold text-dark mb-0">Captura de Quejas</h2>
+        <p class="text-muted">Registra una nueva queja para el socio actual.</p>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Tarjeta de Información del Socio (Read-Only) -->
+<div class="card shadow-sm mb-4 border-0" style="background-color: #f8f9fa; border-top: 4px solid #6c757d !important;">
+    <div class="card-body p-4">
+        <h5 class="card-title text-secondary mb-3"><i class="bi bi-info-circle me-2"></i>Información del Socio (Referencia)</h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Institución</label>
+                <!-- IMPORTANTE: El atributo name="socio_id" es el que captura Django en POST -->
+                <select id="select-institucion" class="form-select bg-white" name="socio_id" form="queja-form">
+                    <option value="">-- Selecciona un Socio --</option>
+                    {% for s in socios_disponibles %}
+                        <option value="{{ s.pk }}" 
+                                data-estado="{{ s.estado_republica|default:'' }}" 
+                                data-municipio="" 
+                                data-localidad="">
+                            {{ s.nombre_institucion }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Estado</label>
+                <input type="text" id="input-estado" class="form-control" placeholder="Escribe el estado">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Municipio</label>
+                <input type="text" id="input-municipio" class="form-control" placeholder="Escribe el municipio">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Localidad</label>
+                <input type="text" id="input-localidad" class="form-control" placeholder="Escribe la localidad">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario de Captura -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form id="queja-form" method="POST" action="{% url 'captura_queja' %}">
+            {% csrf_token %}
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <label for="{{ form.fecha_consulta.id_for_label }}" class="form-label fw-semibold text-dark">Fecha de Consulta *</label>
+                    {{ form.fecha_consulta }}
+                    {% if form.fecha_consulta.errors %}
+                        <div class="text-danger small mt-1">{{ form.fecha_consulta.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-4">
+                    <label for="{{ form.estado.id_for_label }}" class="form-label fw-semibold text-dark">Estado de la Queja *</label>
+                    {{ form.estado }}
+                </div>
+                
+                <div class="col-md-4" id="fecha-cierre-container" style="display: none;">
+                    <label for="{{ form.fecha_cierre.id_for_label }}" class="form-label fw-semibold text-dark">Fecha de Cierre *</label>
+                    {{ form.fecha_cierre }}
+                    {% if form.fecha_cierre.errors %}
+                        <div class="text-danger small mt-1">{{ form.fecha_cierre.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label for="{{ form.producto.id_for_label }}" class="form-label fw-semibold text-dark">Producto *</label>
+                    {{ form.producto }}
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="{{ form.causa.id_for_label }}" class="form-label fw-semibold text-dark">Causa *</label>
+                    {{ form.causa }}
+                </div>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <label for="{{ form.medio.id_for_label }}" class="form-label fw-semibold text-dark">Medio de Recepción *</label>
+                    {{ form.medio }}
+                </div>
+            </div>
+            
+            <hr class="text-muted">
+            
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-primary px-5 py-2 fw-semibold" style="background-color: #1c62c4; border: none;" id="btn-pre-submit" data-bs-toggle="modal" data-bs-target="#confirmModal">
+                    <i class="bi bi-file-earmark-check me-2"></i>Continuar al Resumen
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title fw-bold text-dark" id="confirmModalLabel"><i class="bi bi-shield-check text-success me-2"></i>Confirmación de Registro de Reclamación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        
+        <!-- Formato Oficial UCISA Simulado -->
+        <div class="p-3 border rounded mb-3 bg-white" style="border-left: 4px solid #1c62c4 !important;">
+            <div class="row g-3">
+                <div class="col-12 border-bottom pb-2 mb-2">
+                    <span class="text-muted small fw-bold text-uppercase">Datos de la Institución</span>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Institución Financiera:</p>
+                    <p class="fw-semibold" id="modal-socio">-</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Ubicación:</p>
+                    <p class="fw-semibold" id="modal-ubicacion">-</p>
+                </div>
+                
+                <div class="col-12 border-bottom pb-2 mt-4 mb-2">
+                    <span class="text-muted small fw-bold text-uppercase">Detalles de la Queja</span>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Fecha de Consulta:</p>
+                    <p class="fw-semibold" id="modal-fecha">-</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Medio de Recepción:</p>
+                    <p class="fw-semibold" id="modal-medio">-</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Producto Afectado:</p>
+                    <p class="fw-semibold" id="modal-producto">-</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Causa Específica:</p>
+                    <p class="fw-semibold" id="modal-causa">-</p>
+                </div>
+                <div class="col-md-12 mt-3 p-3 bg-light rounded text-center">
+                    <p class="mb-0 text-dark">Estado inicial: <span class="badge bg-secondary fs-6" id="modal-estado">-</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-warning py-2 small mb-0">
+            <i class="bi bi-exclamation-triangle me-1"></i> Por favor verifique que todos los datos sean correctos antes de generar el folio oficial.
+        </div>
+
+      </div>
+      <div class="modal-footer bg-light border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Modificar Datos</button>
+        <button type="button" class="btn btn-success px-4" id="btn-confirm-submit">
+            <i class="bi bi-cloud-arrow-up me-2"></i>Confirmar y Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const estadoSelect = document.getElementById('id_estado');
+        const fechaCierreContainer = document.getElementById('fecha-cierre-container');
+        const fechaCierreInput = document.getElementById('id_fecha_cierre');
+        
+        function toggleFechaCierre() {
+            // 1 = Abierto, 2 = Cerrado
+            if (estadoSelect.value === '2') {
+                fechaCierreContainer.style.display = 'block';
+                fechaCierreInput.required = true;
+            } else {
+                fechaCierreContainer.style.display = 'none';
+                fechaCierreInput.required = false;
+                fechaCierreInput.value = ''; // Limpiar valor si se oculta
+            }
+        }
+        
+        // Ejecutar al cargar la página por si ya hay un valor (ej. error de validación)
+        toggleFechaCierre();
+        
+        // Escuchar cambios
+        estadoSelect.addEventListener('change', toggleFechaCierre);
+
+        // Autocompletado de Socio
+        const selectInstitucion = document.getElementById('select-institucion');
+        const inputEstado = document.getElementById('input-estado');
+        const inputMunicipio = document.getElementById('input-municipio');
+        const inputLocalidad = document.getElementById('input-localidad');
+
+        selectInstitucion.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (selectedOption.value) {
+                // Autocompletar con los atributos data-
+                inputEstado.value = selectedOption.getAttribute('data-estado') || '';
+                inputMunicipio.value = selectedOption.getAttribute('data-municipio') || 'Centro'; // Dato de ejemplo
+                inputLocalidad.value = selectedOption.getAttribute('data-localidad') || 'Col. Principal'; // Dato de ejemplo
+            } else {
+                // Limpiar campos si se selecciona la opción por defecto
+                inputEstado.value = '';
+                inputMunicipio.value = '';
+                inputLocalidad.value = '';
+            }
+        });
+
+        // Lógica del Modal
+        const btnPreSubmit = document.getElementById('btn-pre-submit');
+        const btnConfirmSubmit = document.getElementById('btn-confirm-submit');
+        const form = document.querySelector('form');
+
+        btnPreSubmit.addEventListener('click', function() {
+            // Recoger valores del Socio
+            const txtSocio = selectInstitucion.options[selectInstitucion.selectedIndex].value ? selectInstitucion.options[selectInstitucion.selectedIndex].text : 'No especificado';
+            const locText = [inputLocalidad.value, inputMunicipio.value, inputEstado.value].filter(Boolean).join(', ');
+
+            // Recoger valores de la Queja
+            const inputFecha = document.getElementById('{{ form.fecha_consulta.id_for_label }}').value;
+            const inputMedio = document.getElementById('{{ form.medio.id_for_label }}').value;
+            
+            const selEstado = document.getElementById('id_estado');
+            const txtEstado = selEstado.options[selEstado.selectedIndex].text;
+            
+            const selProducto = document.getElementById('{{ form.producto.id_for_label }}');
+            const txtProducto = selProducto.options[selProducto.selectedIndex] ? selProducto.options[selProducto.selectedIndex].text : '-';
+            
+            const selCausa = document.getElementById('{{ form.causa.id_for_label }}');
+            const txtCausa = selCausa.options[selCausa.selectedIndex] ? selCausa.options[selCausa.selectedIndex].text : '-';
+
+            // Pintar en modal
+            document.getElementById('modal-socio').textContent = txtSocio;
+            document.getElementById('modal-ubicacion').textContent = locText || '-';
+            document.getElementById('modal-fecha').textContent = inputFecha || '-';
+            document.getElementById('modal-medio').textContent = inputMedio || '-';
+            document.getElementById('modal-producto').textContent = txtProducto;
+            document.getElementById('modal-causa').textContent = txtCausa;
+            
+            const badgeEstado = document.getElementById('modal-estado');
+            badgeEstado.textContent = txtEstado;
+            if (selEstado.value === '1') {
+                badgeEstado.className = 'badge bg-warning text-dark fs-6';
+            } else {
+                badgeEstado.className = 'badge bg-success fs-6';
+            }
+        });
+
+        btnConfirmSubmit.addEventListener('click', function() {
+            // Deshabilitar botón para evitar doble submit
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+            // Enviar form principal (notar que el select-institucion tiene form="queja-form")
+            document.getElementById('queja-form').submit();
+        });
+    });
+</script>
+{% endblock %}

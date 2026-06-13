@@ -26,6 +26,11 @@ urlpatterns = [
     # 1. Página de inicio (Raíz)
     path('', consultas_views.home, name='home'),
     
+    # Módulo de Consultas y Quejas
+    path('captura-queja/', consultas_views.captura_queja, name='captura_queja'),
+    path('captura/ticket/<str:folio>/', consultas_views.detalle_ticket, name='detalle_ticket'),
+    path('cierre/', consultas_views.cierre_trimestral, name='cierre_trimestral'),
+    
     # Socios
     path('socios/', include('apps.socios.urls')),
     

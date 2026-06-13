@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Acuse de Reclamación - UCISA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos del Ticket */
+    .ticket-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .ticket-card {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    
+    .ticket-header {
+        background-color: #1c62c4;
+        color: white;
+        padding: 30px;
+        text-align: center;
+        border-bottom: 5px solid #154c9c;
+    }
+    
+    .ticket-folio {
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin-top: 10px;
+    }
+    
+    .ticket-body {
+        padding: 40px;
+    }
+    
+    .data-group {
+        margin-bottom: 25px;
+    }
+    
+    .data-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6b7280;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .data-value {
+        font-size: 1.1rem;
+        color: #1f2937;
+        font-weight: 500;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 8px;
+    }
+
+    .ticket-footer {
+        background-color: #f9fafb;
+        padding: 20px;
+        text-align: center;
+        border-top: 1px dashed #d1d5db;
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+
+    /* Estilos de Impresión */
+    @media print {
+        body {
+            background-color: white !important;
+        }
+        .ucisa-navbar, .btn-print-container, .alert {
+            display: none !important;
+        }
+        .ticket-card {
+            box-shadow: none !important;
+            border: 1px solid #ccc !important;
+        }
+        .ticket-header {
+            color: black !important;
+            border-bottom: 2px solid black !important;
+            /* Forzar colores de fondo en impresoras si lo soportan */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        main {
+            padding-top: 0 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Botonera Acción -->
+<div class="text-center mb-4 btn-print-container">
+    <a href="{% url 'captura_queja' %}" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left me-2"></i>Registrar otra queja
+    </a>
+    <button onclick="window.print()" class="btn btn-primary px-4 shadow-sm" style="background-color: #1c62c4; border: none;">
+        <i class="bi bi-printer me-2"></i>Imprimir Comprobante para Aclaraciones
+    </button>
+</div>
+
+<!-- Ticket Imprimible -->
+<div class="ticket-container">
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <h5 class="mb-0 text-white-50 text-uppercase fw-bold">Acuse de Recibo Oficial</h5>
+            <div class="ticket-folio">
+                FOLIO: {{ queja.folio }}
+            </div>
+            <p class="mb-0 mt-2 text-white-50 small">Conserve este número para futuras referencias.</p>
+        </div>
+        
+        <div class="ticket-body">
+            
+            <h6 class="text-primary fw-bold mb-4 border-bottom pb-2">Información de la Institución</h6>
+            <div class="row">
+                <div class="col-md-12 data-group">
+                    <div class="data-label">Institución / Socio</div>
+                    <div class="data-value">
+                        {% if queja.socio_referencia %}
+                            {{ queja.socio_referencia.nombre_institucion }}
+                        {% else %}
+                            Caja de Ahorro XYZ (Dato de Prueba)
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="text-primary fw-bold mb-4 mt-2 border-bottom pb-2">Detalles de la Operación</h6>
+            <div class="row">
+                <div class="col-md-6 data-group">
+                    <div class="data-label">Fecha de Recepción</div>
+                    <div class="data-value">{{ queja.fecha_consulta|date:"d \d\e F, Y" }}</div>
+                </div>
+                <div class="col-md-6 data-group">
+                    <div class="data-label">Medio de Recepción</div>
+                    <div class="data-value">{{ queja.medio }}</div>
+                </div>
+                
+                <div class="col-md-12 data-group">
+                    <div class="data-label">Producto Afectado</div>
+                    <div class="data-value">{{ queja.producto.producto }}</div>
+                </div>
+                
+                <div class="col-md-12 data-group">
+                    <div class="data-label">Causa Identificada</div>
+                    <div class="data-value">{{ queja.causa.descripcion_causa }}</div>
+                </div>
+
+                <div class="col-md-6 data-group mb-0">
+                    <div class="data-label">Estatus del Ticket</div>
+                    <div class="data-value">
+                        {% if queja.estado == 1 %}
+                            <strong class="text-warning">ABIERTO / EN PROCESO</strong>
+                        {% else %}
+                            <strong class="text-success">CONCLUIDO / CERRADO</strong>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 data-group mb-0">
+                    <div class="data-label">Fecha de Cierre Programada</div>
+                    <div class="data-value">
+                        {% if queja.fecha_cierre %}
+                            {{ queja.fecha_cierre|date:"d \d\e F, Y" }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ticket-footer">
+            Este comprobante es generado por el Sistema de Consulta de Información UCISA.<br>
+            Cualquier duda o aclaración, mencione su número de folio a un asesor.
+        </div>
+    </div>
+</div>
+
+{% endblock %}

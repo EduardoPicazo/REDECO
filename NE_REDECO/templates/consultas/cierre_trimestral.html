@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Cierre Trimestral - UCISA{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold text-dark mb-0">Cierre Trimestral (Generación Lotes)</h2>
+        <p class="text-muted">Filtra las quejas, selecciónalas y genera el archivo JSON para CONDUSEF.</p>
+    </div>
+</div>
+
+<!-- Panel de Filtros -->
+<div class="card shadow-sm border-0 mb-4" style="background-color: #ffffff; border-top: 4px solid #1c62c4 !important;">
+    <div class="card-body p-4">
+        <form method="GET" action="{% url 'cierre_trimestral' %}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="anio" class="form-label fw-semibold text-secondary">Año</label>
+                    <select class="form-select" id="anio" name="anio">
+                        <option value="">Cualquier Año</option>
+                        {% for y in anios %}
+                            <option value="{{ y }}" {% if anio_actual == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="trimestre" class="form-label fw-semibold text-secondary">Trimestre</label>
+                    <select class="form-select" id="trimestre" name="trimestre">
+                        <option value="">Todos los Trimestres</option>
+                        <option value="1" {% if trimestre_actual == '1' %}selected{% endif %}>Trimestre 1 (Ene - Mar)</option>
+                        <option value="2" {% if trimestre_actual == '2' %}selected{% endif %}>Trimestre 2 (Abr - Jun)</option>
+                        <option value="3" {% if trimestre_actual == '3' %}selected{% endif %}>Trimestre 3 (Jul - Sep)</option>
+                        <option value="4" {% if trimestre_actual == '4' %}selected{% endif %}>Trimestre 4 (Oct - Dic)</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-outline-primary fw-semibold">
+                        <i class="bi bi-filter me-2"></i>Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla y Formulario de Exportación -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <form method="POST" action="{% url 'cierre_trimestral' %}" id="json-form">
+            {% csrf_token %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr>
+                            <th class="px-4 py-3" style="width: 50px;">
+                                <input class="form-check-input" type="checkbox" id="check-all">
+                            </th>
+                            <th class="py-3">Folio</th>
+                            <th class="py-3">Fecha Consulta</th>
+                            <th class="py-3">Estado</th>
+                            <th class="py-3">Producto</th>
+                            <th class="py-3">Causa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for queja in quejas %}
+                        <tr>
+                            <td class="px-4">
+                                <input class="form-check-input queja-checkbox" type="checkbox" name="queja_ids" value="{{ queja.folio }}">
+                            </td>
+                            <td><strong>{{ queja.folio }}</strong></td>
+                            <td>{{ queja.fecha_consulta|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if queja.estado == 1 %}
+                                    <span class="badge bg-warning text-dark">En proceso</span>
+                                {% else %}
+                                    <span class="badge bg-success">Cerrado</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ queja.producto.producto|truncatechars:30 }}</td>
+                            <td class="text-muted small">{{ queja.causa.descripcion_causa|truncatechars:30 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                No se encontraron quejas para este periodo.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if quejas %}
+            <div class="p-4 bg-light border-top d-flex justify-content-between align-items-center">
+                <span class="text-muted small" id="selection-count">0 quejas seleccionadas</span>
+                <button type="submit" class="btn btn-success px-4 py-2 fw-semibold" id="btn-generar" disabled>
+                    <i class="bi bi-filetype-json me-2"></i>Generar Lote JSON
+                </button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkAll = document.getElementById('check-all');
+        const checkboxes = document.querySelectorAll('.queja-checkbox');
+        const btnGenerar = document.getElementById('btn-generar');
+        const selectionCount = document.getElementById('selection-count');
+        
+        function updateState() {
+            let checkedCount = 0;
+            checkboxes.forEach(cb => {
+                if(cb.checked) checkedCount++;
+            });
+            
+            if(selectionCount) {
+                selectionCount.textContent = `${checkedCount} quejas seleccionadas`;
+            }
+            
+            if(btnGenerar) {
+                btnGenerar.disabled = checkedCount === 0;
+            }
+            
+            if(checkAll && checkboxes.length > 0) {
+                checkAll.checked = checkedCount === checkboxes.length;
+            }
+        }
+        
+        if(checkAll) {
+            checkAll.addEventListener('change', function() {
+                checkboxes.forEach(cb => {
+                    cb.checked = checkAll.checked;
+                });
+                updateState();
+            });
+        }
+        
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateState);
+        });
+    });
+</script>
+{% endblock %}
