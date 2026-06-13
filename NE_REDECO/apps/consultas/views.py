@@ -1,5 +1,7 @@
 from django.shortcuts import render
+# pyrefly: ignore [missing-import]
 from apps.socios.models import CatalogoSepomex
+# pyrefly: ignore [missing-import]
 from apps.consultas.models import Producto, Causa
 
 def demo_busqueda(request):
@@ -26,3 +28,6 @@ def demo_busqueda(request):
         'resultados_sepomex': resultados_sepomex,
         'resultados_productos': resultados_productos
     })
+
+def home(request):
+    return render(request, 'consultas/home.html')

@@ -15,10 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from apps.consultas.views import demo_busqueda
+from django.urls import path, include
+
+# pyrefly: ignore [missing-import]
+from apps.consultas import views as consultas_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('demo/', demo_busqueda, name='demo_busqueda'),
+    
+    # 1. Página de inicio (Raíz)
+    path('', consultas_views.home, name='home'),
+    
+    # 2. El buscador que ya tenías funcional
+    path('demo/', consultas_views.demo_busqueda, name='demo_busqueda'),
 ]
