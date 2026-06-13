@@ -1,140 +1,54 @@
-# Sistema Redeco - Plataforma de Gestión y Reporteo Trimestral (CONDUSEF)
+# 🎯 UCISA - Plataforma Integral de Gestión y Reporteo Trimestral (REDECO/CONDUSEF)
 
-Análisis, modelado e implementación de un sistema web integral de gestión y automatización de reportes trimestrales de consultas para la plataforma Redeco. El sistema centraliza la administración de socios, automatiza la validación de catálogos oficiales de SEPOMEX, gestiona esquemas dinámicos de autenticación por token y configura una pasarela de comunicación asíncrona con los endpoints de CONDUSEF, garantizando transacciones atómicas seguras y trazables.
+Este sistema está diseñado para capturar reclamaciones y consultas financieras, validar contra catálogos oficiales y empaquetar de forma atómica y asíncrona lotes trimestrales en formato JSON listos para su envío al regulador.
 
----
+## 🛠️ Stack Tecnológico Actualizado
 
-## 📊 Arquitectura del Sistema
+* **Backend:** Python 3.12 + Django 6.0.x (Mapeo de base de datos relacional mediante Django ORM).
+* **Base de Datos:** SQLite (`db.sqlite3`) cargada con datos de prueba estáticos para catálogos y socios.
+* **Frontend:** Django Templates (SSR) + Bootstrap 5.3 (Componentes nativos y utilidades de diseño) + Bootstrap Icons.
+* **Interactividad:** JavaScript nativo (Vanilla JS) para procesamiento dinámico en cliente y persistencia de datos.
 
-El sistema se diseñó bajo un enfoque desacoplado de tres capas, garantizando la separación de responsabilidades y la integridad transaccional:
+## 🚀 Características Principales del MVP Actual (Core del Negocio)
 
-- **Frontend (Presentación):** React.js 18 (TypeScript) + Vite + Tailwind CSS. Diseñado como una Single Page Application (SPA) responsiva y reactiva.
-- **Backend (Lógica de Negocio):** Python 3.x + Django Framework + Django REST Framework (DRF). Implementa vistas de API estructuradas (APIViews), serializadores robustos, middlewares de seguridad globales y servicios asíncronos orientados a eventos utilizando `requests` o `httpx`.
-- **Base de Datos (Persistencia):** MySQL 8.0 operando bajo el motor transaccional InnoDB con un nivel de aislamiento `SERIALIZABLE` gestionado mediante el ORM de Django (`select_for_update`) para evitar colisiones de folios.
+* **Módulo de Captura de Quejas/Reclamaciones (Prioridad Alta):** Formulario dinámico para registrar consultas con validaciones estrictas en servidor y cliente (ej. la fecha de cierre es obligatoria si el estado es 'Concluido').
+* **Lógica de Negocio - Folio Único Consecutivo:** Generación automática de identificadores irrepetibles con el formato regulatorio obligatorio `YYMMNN` (Año de 2 dígitos + Mes de 2 dígitos + Consecutivo mensual de 2 dígitos) para evitar colisiones con históricos.
+* **Selector de Socios Interactivo:** Menú desplegable conectado a la base de datos de prueba que auto-completa la ubicación geográfica del socio (Estado, Municipio, Localidad) manteniendo los campos editables para correcciones en caliente.
+* **Acuse de Recibo e Impresión de Tickets:** Pantalla de confirmación con vista de "Voucher Oficial" que integra un botón de impresión optimizado mediante CSS (`@media print`) para ocultar elementos de navegación y generar un PDF o ticket físico limpio.
+* **Módulo de Cierre Trimestral y Generador JSON:** Panel de auditoría que lista y agrupa las quejas del trimestre (ej. Abril - Junio 2026), permitiendo una multi-selección mediante checkboxes para empaquetar y exportar los datos en un arreglo JSON estructurado para la CONDUSEF.
+* **Soporte Global de Modo Oscuro:** Integración nativa mediante Bootstrap 5.3 con almacenamiento persistente en `localStorage` para mantener la preferencia del usuario en toda la sesión.
 
----
+## 📂 Estructura del Proyecto
 
-## 🗄️ Modelo de Datos (Esquema Relacional)
+Archivos clave creados recientemente para soportar el flujo principal:
 
-El sistema cuenta con un motor relacional sólido que asegura la consistencia ACID. A continuación se detalla la estructura base de las tablas principales gestionadas por los modelos de Django:
+* `apps/consultas/forms.py` (Validación de capturas).
+* `templates/consultas/captura_queja.html` (Formulario interactivo y modal de confirmación).
+* `templates/consultas/ticket_queja.html` (Voucher imprimible estilizado).
+* `templates/consultas/cierre_trimestral.html` (Tabla interactiva con multi-selector y exportador JSON).
+* `seed_data.py` y `patch_causas.py` (Scripts de inicialización y parches de catálogos como el código 1211).
 
-- `socios`: Indexada mediante el RFC como clave unívoca. Vinculada obligatoriamente al catálogo SEPOMEX.
-- `consultas`: Registra las reclamaciones utilizando un Folio Único Temporal (`YYMMXXXX`) calculado síncronamente.
-- `productos` y `causas`: Catálogos maestros jerárquicos oficiales de la CONDUSEF.
-- `tokens`: Almacenamiento seguro y temporal del ciclo de vida de los tokens JWT externos.
-- `envios` y `detalle_envio`: Entidades históricas inmutables que registran los lotes aceptados por el regulador.
-- `bitacora`: Registro transaccional inmutable en formato JSON para auditoría de acciones críticas (altas, modificaciones y cancelaciones lógicas).
+## 🏃‍♂️ Guía de Inicio Rápido (Cómo correr el proyecto)
 
----
+Sigue estos comandos paso a paso para desplegar el entorno en otra máquina o revisar el avance:
 
-## 🌐 API REST Endpoints
+1. **Clonar el repositorio y activar el entorno virtual:**
+   ```powershell
+   .\venv\Scripts\activate
+   ```
 
-La comunicación entre el cliente y el servidor se realiza mediante una interfaz síncrona y semántica. Los endpoints principales son:
+2. **Ejecutar las migraciones pendientes:**
+   ```powershell
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
 
-### Autenticación
-- `POST /api/auth/token` -> Solicita/renueva el token JWT institucional de CONDUSEF.
+3. **Poblar la base de datos con los datos genéricos de validación:**
+   ```powershell
+   python seed_data.py
+   ```
 
-### Módulo de Socios
-- `GET /api/socios?busqueda={query}` -> Búsqueda predictiva de socios.
-- `POST /api/socios` -> Alta de nuevo socio (Valida Código Postal contra SEPOMEX local).
-- `PUT /api/socios/{rfc}` -> Modificación de datos domiciliarios (Bloqueado si tiene históricos).
-
-### Módulo de Consultas
-- `GET /api/consultas?trimestre={Q}&anio={YYYY}` -> Listado filtrado por periodo.
-- `POST /api/consultas` -> Registra queja, calcula el trimestre y asigna folio `YYMMXXXX`.
-- `PATCH /api/consultas/{id}/cancelar` -> Cancelación lógica (desestimación de folio).
-
-### Módulo de Despacho (Pasarela Regular)
-- `POST /api/envios` -> Transmite el lote JSON seleccionado bajo la política atómica de *Todo o Nada*.
-
----
-
-## 📂 Estructura del Proyecto (Directory Tree)
-
-```text
-redeco-condusef/
-├── NE_REDECO/                # Directorio raíz del proyecto Django Backend
-│   ├── NE_REDECO/            # Configuración global del proyecto (settings, urls, wsgi)
-│   │   ├── __init__.py
-│   │   ├── settings.py       # Configuración de BD MySQL y Apps instaladas
-│   │   └── urls.py           # Enrutador global de la API
-│   ├── apps/                 # Aplicaciones modulares de Django
-│   │   ├── auth_condusef/    # Gestión de seguridad y JWT externo
-│   │   ├── socios/           # Módulo de administración de socios y SEPOMEX
-│   │   ├── consultas/        # Lógica de folios únicos y temporalidad
-│   │   └── envios/           # Serializadores y despacho HTTP a CONDUSEF
-│   ├── data/                 # Catálogos maestros en bruto (Excel/CSV de profesores)
-│   ├── manage.py             # Utilidad de comandos de Django
-│   └── requirements.txt      # Dependencias del proyecto Python
-├── frontend/                 # Código fuente del Cliente (React.js)
-│   ├── src/
-│   │   ├── components/       # Componentes UX/UI (Consola de Errores, Tablas)
-│   │   ├── views/            # Pantallas (Login, Alta Socio, Despacho)
-│   │   ├── services/         # Clientes de API (Axios Interceptors)
-│   │   └── hooks/            # Hooks personalizados para estado global
-│   └── vite.config.ts        # Configuración del empaquetador
-└── README.md                 # El archivo que estás leyendo
-
-## 📦 Instalación y Configuración
-
-Sigue estos pasos para levantar el proyecto en tu entorno local:
-
-### 1. Clonar el repositorio
-```bash
-git clone https://github.com/EduardoPicazo/REDECO.git
-cd REDECO-1
-```
-
-### 2. 🚀 Inicialización del Proyecto
-Enciende el entorno virtual interno para cargar todas las dependencias (como Django y Pandas):
-```bash
-.\NE_REDECO\venv\Scripts\activate
-```
-
-### 3. 📦 Base de Datos y Migraciones
-Posiciónate en el directorio de Django y estructura las tablas (MySQL/SQLite) mediante:
-```bash
-cd NE_REDECO
-python manage.py migrate
-```
-
-### 4. ⚡ Carga Masiva de Catálogos (CONDUSEF y SEPOMEX)
-Ejecuta nuestro comando personalizado de optimización para poblar la base de datos:
-```bash
-python manage.py cargar_catalogos
-```
-*Nota de rendimiento:* Este script procesa **más de 150,000 registros en segundos** trabajando directamente en la memoria RAM de manera atómica, logrando así evitar cualquier cuello de botella por escrituras excesivas en el disco.
-
-### 5. 🖥️ Ver la Demo de Búsqueda (MVP)
-Levanta el servidor local de desarrollo:
-```bash
-python manage.py runserver
-```
-Abre tu navegador y dirígete a:
-**[http://127.0.0.1:8000/demo/](http://127.0.0.1:8000/demo/)**
-
-Ahí podrás interactuar con el MVP funcional y rápido, con una interfaz basada en la identidad visual de UCISA.
-
----
-
-## 🐳 Despliegue con Docker (Recomendado)
-
-Para evitar configuraciones locales complejas de Python y garantizar la ejecucion de la misma versión del código y base de datos con las dependencias exactas, este proyecto cuenta con --
-**Dockerización completa**.
-
-### Requisitos Previos
-- Tener instalado [Docker Desktop](https://www.docker.com/products/docker-desktop/) en tu máquina.
-
-### Levantar el Proyecto con un Solo Comando
-Abre tu terminal en la raíz del proyecto (`REDECO-1`) y ejecuta:
-```bash
-docker compose up --build
-```
-Este comando automáticamente:
-1. Descargará un sistema optimizado ligero (`python:3.12-slim`).
-2. Instalará internamente todas las dependencias exactas (Django, Pandas, Openpyxl, Gunicorn, etc.).
-3. Ejecutará las migraciones.
-4. Montará de forma inteligente tu archivo `db.sqlite3` local (vía volúmenes) para que los más de 150,000 registros y la base de datos persistan sin borrarse al apagar el contenedor.
-5. Encenderá el servidor de producción **Gunicorn** en el puerto `8000`.
-
-Una vez que la terminal indique que está escuchando conexiones, entra a **[http://127.0.0.1:8000/demo/](http://127.0.0.1:8000/demo/)** para interactuar de inmediato con el sistema.
+4. **Iniciar el servidor local de desarrollo:**
+   ```powershell
+   python manage.py runserver
+   ```
