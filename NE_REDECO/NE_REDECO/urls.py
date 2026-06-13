@@ -26,6 +26,9 @@ urlpatterns = [
     # 1. Página de inicio (Raíz)
     path('', consultas_views.home, name='home'),
     
+    # Socios
+    path('socios/', include('apps.socios.urls')),
+    
     # 2. El buscador que ya tenías funcional
     path('demo/', consultas_views.demo_busqueda, name='demo_busqueda'),
 ]

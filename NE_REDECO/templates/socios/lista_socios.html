@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Directorio de Socios - UCISA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .socios-header {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        padding: 30px;
+        margin-bottom: 30px;
+        border-top: 4px solid #1c62c4;
+    }
+    
+    .btn-ucisa {
+        background-color: #1c62c4;
+        color: white;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-ucisa:hover {
+        background-color: #154c9c;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .table-ucisa {
+        background-color: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    
+    .table-ucisa thead {
+        background-color: #1c62c4;
+        color: white;
+    }
+    
+    .table-ucisa th {
+        font-weight: 600;
+        border: none;
+        padding: 15px;
+    }
+    
+    .table-ucisa td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+    
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        color: #d1d5db;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold text-dark mb-0">Directorio de Socios</h2>
+        <p class="text-muted">Consulta y filtra el catálogo de entidades financieras autorizadas.</p>
+    </div>
+</div>
+
+<!-- Panel de Filtros -->
+<div class="socios-header">
+    <form method="GET" action="{% url 'lista_socios' %}">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="q" class="form-label fw-semibold text-secondary">Buscar (Nombre o Clave)</label>
+                <input type="text" class="form-control" id="q" name="q" value="{{ request.GET.q }}" placeholder="Ej. Caja Popular...">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="estado" class="form-label fw-semibold text-secondary">Estado</label>
+                <select class="form-select" id="estado" name="estado">
+                    <option value="">Todos los Estados</option>
+                    {% for val, label in estados_disponibles %}
+                        <option value="{{ val }}" {% if request.GET.estado == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="estatus" class="form-label fw-semibold text-secondary">Estatus</label>
+                <select class="form-select" id="estatus" name="estatus">
+                    <option value="">Cualquiera</option>
+                    {% for val, label in estatus_disponibles %}
+                        <option value="{{ val }}" {% if request.GET.estatus == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-ucisa fw-semibold">
+                    <i class="bi bi-search me-2"></i>Filtrar
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Resultados -->
+{% if socios %}
+<div class="table-responsive">
+    <table class="table table-hover table-ucisa align-middle">
+        <thead>
+            <tr>
+                <th>Clave CONDUSEF</th>
+                <th>Nombre Institución</th>
+                <th>Tipo Entidad</th>
+                <th>Estado</th>
+                <th>Fecha Registro</th>
+                <th class="text-center">Estatus</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for socio in socios %}
+            <tr>
+                <td><strong>{{ socio.clave_condusef }}</strong></td>
+                <td>{{ socio.nombre_institucion }}</td>
+                <td>{{ socio.tipo_entidad }}</td>
+                <td>{{ socio.estado_republica }}</td>
+                <td class="text-muted small">{{ socio.fecha_registro|date:"d/m/Y H:i" }}</td>
+                <td class="text-center">
+                    {% if socio.estatus == 'Activo' %}
+                        <span class="badge bg-success px-3 py-2 rounded-pill">Activo</span>
+                    {% else %}
+                        <span class="badge bg-danger px-3 py-2 rounded-pill">Inactivo</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="text-end text-muted mt-2 small">
+    Mostrando {{ socios.count }} resultados.
+</div>
+{% else %}
+<!-- Estado Vacío -->
+<div class="empty-state">
+    <div class="empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-building-slash" viewBox="0 0 16 16">
+            <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95Z"/>
+            <path d="M2 1a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6.5a.5.5 0 0 1-1 0V1H3v14h3v-2.5a.5.5 0 0 1 .5-.5H8v4H3a1 1 0 0 1-1-1z"/>
+            <path d="M4.5 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-6 3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-6 3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"/>
+        </svg>
+    </div>
+    <h4 class="text-secondary fw-light">No encontramos socios con esos criterios</h4>
+    <p class="text-muted">Intenta cambiar los filtros o asegurarte de que el nombre esté bien escrito.</p>
+</div>
+{% endif %}
+{% endblock %}
