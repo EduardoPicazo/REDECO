@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - Sistema UCISA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    .hero-bg {
+        background: linear-gradient(135deg, #1c62c4 0%, #154c9c 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 80px 40px;
+        text-align: center;
+        margin-bottom: 50px;
+        box-shadow: 0 10px 30px rgba(28, 98, 196, 0.2);
+    }
+    
+    .hero-title {
+        font-weight: 700;
+        font-size: 3rem;
+        margin-bottom: 20px;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        margin-bottom: 40px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .btn-cta {
+        background-color: white;
+        color: #1c62c4;
+        font-weight: 600;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .btn-cta:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        color: #154c9c;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        color: #1c62c4;
+        margin-bottom: 20px;
+    }
+
+    .feature-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .feature-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-bg">
+    <h1 class="hero-title">Sistema de Consulta de Información UCISA</h1>
+    <p class="hero-subtitle">
+        Plataforma integral de gestión y automatización de reportes trimestrales para la validación de catálogos oficiales SEPOMEX y CONDUSEF.
+    </p>
+    <a href="{% url 'demo_busqueda' %}" class="btn-cta">
+        <i class="bi bi-search me-2"></i> Ingresar al Buscador
+    </a>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Feature 1 -->
+    <div class="col-md-4">
+        <div class="feature-card shadow-sm">
+            <div class="feature-icon">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <h3 class="feature-title">Validación SEPOMEX con más de 150k registros</h3>
+            <p class="feature-text">
+                Consulta ultrarrápida entre miles de códigos postales oficiales de forma atómica y confiable.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Feature 2 -->
+    <div class="col-md-4">
+        <div class="feature-card shadow-sm">
+            <div class="feature-icon">
+                <i class="bi bi-filter-square"></i>
+            </div>
+            <h3 class="feature-title">Filtrado Inteligente de Productos</h3>
+            <p class="feature-text">
+                Búsqueda dinámica de productos financieros y causas de reclamación basados en catálogos oficiales.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Feature 3 -->
+    <div class="col-md-4">
+        <div class="feature-card shadow-sm">
+            <div class="feature-icon">
+                <i class="bi bi-bar-chart-steps"></i>
+            </div>
+            <h3 class="feature-title">Módulo de Reportes</h3>
+            <p class="feature-text">
+                Generación y despacho asíncrono de lotes de reportes trimestrales con integración directa al regulador.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

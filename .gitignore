@@ -4,3 +4,7 @@
 *.sqlite3
 # Ignorar tokens de acceso confidenciales
 *.txt
+
+__pycache__/
+
+*.pyo

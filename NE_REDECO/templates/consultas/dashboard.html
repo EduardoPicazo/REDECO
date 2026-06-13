@@ -74,11 +74,11 @@
                 <label for="producto" class="form-label text-light opacity-75">Producto</label>
                 <select class="form-select form-select-lg" id="producto" name="producto">
                     <option value="">-- Todos los productos --</option>
-                    <option value="Tarjeta" {% if request.GET.producto=='Tarjeta' %} selected {% endif %}>Tarjeta
+                    <option value="Tarjeta" {% if request.GET.producto == 'Tarjeta' %} selected {% endif %}>Tarjeta
                     </option>
-                    <option value="Crédito" {% if request.GET.producto=='Crédito' %} selected {% endif %}>Crédito
+                    <option value="Crédito" {% if request.GET.producto == 'Crédito' %} selected {% endif %}>Crédito
                     </option>
-                    <option value="Seguro" {% if request.GET.producto=='Seguro' %} selected {% endif %}>Seguro</option>
+                    <option value="Seguro" {% if request.GET.producto == 'Seguro' %} selected {% endif %}>Seguro</option>
                     <!-- Las opciones podrían ser dinámicas desde la DB en el futuro -->
                 </select>
             </div>
@@ -86,12 +86,12 @@
                 <label for="causa" class="form-label text-light opacity-75">Causa</label>
                 <select class="form-select form-select-lg" id="causa" name="causa">
                     <option value="">-- Todas las causas --</option>
-                    <option value="Robo" {% if request.GET.causa=='Robo' %} selected {% endif %}>Robo</option>
-                    <option value="Extravío" {% if request.GET.causa=='Extravío' %} selected {% endif %}>Extravío
+                    <option value="Robo" {% if request.GET.causa == 'Robo' %} selected {% endif %}>Robo</option>
+                    <option value="Extravío" {% if request.GET.causa == 'Extravío' %} selected {% endif %}>Extravío
                     </option>
-                    <option value="Clonación" {% if request.GET.causa=='Clonación' %} selected {% endif %}>Clonación
+                    <option value="Clonación" {% if request.GET.causa == 'Clonación' %} selected {% endif %}>Clonación
                     </option>
-                    <option value="Fraude" {% if request.GET.causa=='Fraude' %} selected {% endif %}>Fraude</option>
+                    <option value="Fraude" {% if request.GET.causa == 'Fraude' %} selected {% endif %}>Fraude</option>
                 </select>
             </div>
         </div>
