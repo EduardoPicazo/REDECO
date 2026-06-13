@@ -71,6 +71,11 @@
         <h2 class="fw-bold text-dark mb-0">Directorio de Socios</h2>
         <p class="text-muted">Consulta y filtra el catálogo de entidades financieras autorizadas.</p>
     </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-success fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarSocio">
+            <i class="bi bi-plus-circle me-2"></i>Agregar Socio
+        </button>
+    </div>
 </div>
 
 <!-- Panel de Filtros -->
@@ -162,4 +167,123 @@
     <p class="text-muted">Intenta cambiar los filtros o asegurarte de que el nombre esté bien escrito.</p>
 </div>
 {% endif %}
+
+<!-- Modal Agregar Socio -->
+<div class="modal fade" id="modalAgregarSocio" tabindex="-1" aria-labelledby="modalAgregarSocioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark" id="modalAgregarSocioLabel">Agregar Nuevo Socio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'agregar_socio' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Clave CONDUSEF *</label>
+                            <input type="text" class="form-control" name="clave_condusef" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tipo de Entidad *</label>
+                            <select class="form-select" name="tipo_entidad" required>
+                                <option value="">Selecciona un tipo...</option>
+                                {% for val, label in tipos_entidad %}
+                                    <option value="{{ val }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nombre de la Institución *</label>
+                            <input type="text" class="form-control" name="nombre_institucion" required>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Código Postal</label>
+                            <input type="text" class="form-control" name="codigo_postal" id="inputCP" maxlength="5" placeholder="Ej. 01000">
+                            <div id="cpFeedback" class="form-text text-danger d-none">Código postal no encontrado.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Estado de la República *</label>
+                            <input type="text" class="form-control" name="estado_republica" id="inputEstado" readonly required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Delegación o Municipio</label>
+                            <input type="text" class="form-control" name="municipio" id="inputMunicipio" readonly>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Colonia</label>
+                            <select class="form-select" name="colonia" id="selectColonia">
+                                <option value="">Selecciona una colonia...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Estatus</label>
+                            <select class="form-select" name="estatus">
+                                {% for val, label in estatus_disponibles %}
+                                    <option value="{{ val }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar Socio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputCP = document.getElementById('inputCP');
+    const inputEstado = document.getElementById('inputEstado');
+    const inputMunicipio = document.getElementById('inputMunicipio');
+    const selectColonia = document.getElementById('selectColonia');
+    const cpFeedback = document.getElementById('cpFeedback');
+
+    inputCP.addEventListener('input', function() {
+        const cp = this.value.trim();
+        
+        // Reset fields when typing
+        inputEstado.value = '';
+        inputMunicipio.value = '';
+        selectColonia.innerHTML = '<option value="">Selecciona una colonia...</option>';
+        cpFeedback.classList.add('d-none');
+
+        if (cp.length === 5) {
+            fetch(`/socios/buscar-cp/?cp=${cp}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('CP no encontrado');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Populate fields
+                    inputEstado.value = data.estado || '';
+                    inputMunicipio.value = data.municipio || '';
+                    
+                    // Populate select options
+                    data.colonias.forEach(colonia => {
+                        const option = document.createElement('option');
+                        option.value = colonia;
+                        option.textContent = colonia;
+                        selectColonia.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    cpFeedback.classList.remove('d-none');
+                });
+        }
+    });
+});
+</script>
 {% endblock %}
