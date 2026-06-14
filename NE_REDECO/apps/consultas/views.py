@@ -48,6 +48,16 @@ def captura_queja(request):
     if request.method == 'POST':
         form = QuejaForm(request.POST)
         socio_id = request.POST.get('socio_id')
+        estado_socio = request.POST.get('estado')
+        municipio_socio = request.POST.get('municipio')
+        localidad_socio = request.POST.get('localidad')
+        
+        if not socio_id or not estado_socio or not municipio_socio or not localidad_socio:
+            messages.error(request, "Debe seleccionar un socio y asegurarse de que Estado, Municipio y Localidad no estén vacíos.")
+            return render(request, 'consultas/captura_queja.html', {
+                'form': form,
+                'socios_disponibles': socios_disponibles
+            })
         
         if form.is_valid():
             queja = form.save(commit=False)

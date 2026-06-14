@@ -27,7 +27,7 @@
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">Institución</label>
                 <!-- IMPORTANTE: El atributo name="socio_id" es el que captura Django en POST -->
-                <select id="select-institucion" class="form-select bg-white" name="socio_id" form="queja-form">
+                <select id="select-institucion" class="form-select bg-white" name="socio_id" form="queja-form" required>
                     <option value="">-- Selecciona un Socio --</option>
                     {% for s in socios_disponibles %}
                         <option value="{{ s.pk }}" 
@@ -41,15 +41,15 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">Estado</label>
-                <input type="text" id="input-estado" class="form-control" placeholder="Escribe el estado">
+                <input type="text" id="input-estado" name="estado" form="queja-form" class="form-control" placeholder="Escribe el estado" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">Municipio</label>
-                <input type="text" id="input-municipio" class="form-control" placeholder="Escribe el municipio">
+                <input type="text" id="input-municipio" name="municipio" form="queja-form" class="form-control" placeholder="Escribe el municipio" required>
             </div>
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">Localidad</label>
-                <input type="text" id="input-localidad" class="form-control" placeholder="Escribe la localidad">
+                <input type="text" id="input-localidad" name="localidad" form="queja-form" class="form-control" placeholder="Escribe la localidad" required>
             </div>
         </div>
     </div>
@@ -230,9 +230,16 @@
         // Lógica del Modal
         const btnPreSubmit = document.getElementById('btn-pre-submit');
         const btnConfirmSubmit = document.getElementById('btn-confirm-submit');
-        const form = document.querySelector('form');
+        const form = document.getElementById('queja-form');
 
-        btnPreSubmit.addEventListener('click', function() {
+        btnPreSubmit.addEventListener('click', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+
             // Recoger valores del Socio
             const txtSocio = selectInstitucion.options[selectInstitucion.selectedIndex].value ? selectInstitucion.options[selectInstitucion.selectedIndex].text : 'No especificado';
             const locText = [inputLocalidad.value, inputMunicipio.value, inputEstado.value].filter(Boolean).join(', ');

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.http import JsonResponse
 from django.contrib import messages
@@ -24,12 +24,18 @@ def lista_socios(request):
 
     # Ordenar por defecto, o podrías agregar un order_by('nombre_institucion')
     socios = socios.order_by('nombre_institucion')
+    
+    claves_condusef_disponibles = Socio.objects.values(
+        'clave_condusef', 'nombre_institucion', 'tipo_entidad', 
+        'codigo_postal', 'estado_republica', 'municipio', 'colonia'
+    ).distinct().order_by('nombre_institucion')
 
     context = {
         'socios': socios,
         'estados_disponibles': Socio.ESTADOS_CHOICES,
         'estatus_disponibles': Socio.ESTATUS_CHOICES,
         'tipos_entidad': Socio.TIPO_ENTIDAD_CHOICES,
+        'claves_condusef_disponibles': claves_condusef_disponibles,
     }
     return render(request, 'socios/lista_socios.html', context)
 
@@ -91,4 +97,38 @@ def agregar_socio(request):
             
         return redirect('lista_socios')
     
+    return redirect('lista_socios')
+
+def editar_socio(request, pk):
+    socio = get_object_or_404(Socio, pk=pk)
+    if request.method == 'POST':
+        socio.clave_condusef = request.POST.get('clave_condusef', '').strip()
+        socio.nombre_institucion = request.POST.get('nombre_institucion', '').strip()
+        socio.tipo_entidad = request.POST.get('tipo_entidad', '').strip()
+        socio.codigo_postal = request.POST.get('codigo_postal', '').strip()
+        socio.estado_republica = request.POST.get('estado_republica', '').strip()
+        socio.municipio = request.POST.get('municipio', '').strip()
+        socio.colonia = request.POST.get('colonia', '').strip()
+        socio.estatus = request.POST.get('estatus', '').strip()
+        
+        if not all([socio.clave_condusef, socio.nombre_institucion, socio.tipo_entidad, socio.estado_republica]):
+            messages.error(request, 'Por favor completa los campos obligatorios.')
+            return redirect('lista_socios')
+            
+        try:
+            socio.save()
+            messages.success(request, 'Socio actualizado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al actualizar el socio: {str(e)}')
+            
+    return redirect('lista_socios')
+
+def eliminar_socio(request, pk):
+    socio = get_object_or_404(Socio, pk=pk)
+    if request.method == 'POST':
+        try:
+            socio.delete()
+            messages.success(request, 'Socio eliminado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el socio: {str(e)}')
     return redirect('lista_socios')

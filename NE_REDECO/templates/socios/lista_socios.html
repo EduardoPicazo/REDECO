@@ -128,6 +128,7 @@
                 <th>Estado</th>
                 <th>Fecha Registro</th>
                 <th class="text-center">Estatus</th>
+                <th class="text-center">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -144,6 +145,27 @@
                     {% else %}
                         <span class="badge bg-danger px-3 py-2 rounded-pill">Inactivo</span>
                     {% endif %}
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-2 btn-editar" 
+                            data-bs-toggle="modal" data-bs-target="#editarSocioModal"
+                            data-id="{{ socio.id }}"
+                            data-clave="{{ socio.clave_condusef }}"
+                            data-nombre="{{ socio.nombre_institucion }}"
+                            data-tipo="{{ socio.tipo_entidad }}"
+                            data-cp="{{ socio.codigo_postal|default_if_none:'' }}"
+                            data-estado="{{ socio.estado_republica }}"
+                            data-municipio="{{ socio.municipio|default_if_none:'' }}"
+                            data-colonia="{{ socio.colonia|default_if_none:'' }}"
+                            data-estatus="{{ socio.estatus }}">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-eliminar"
+                            data-bs-toggle="modal" data-bs-target="#eliminarSocioModal"
+                            data-id="{{ socio.id }}"
+                            data-nombre="{{ socio.nombre_institucion }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </td>
             </tr>
             {% endfor %}
@@ -182,7 +204,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Clave CONDUSEF *</label>
-                            <input type="text" class="form-control" name="clave_condusef" required>
+                            <input type="text" class="form-control" name="clave_condusef" required placeholder="Ej. SOCIO-004 o 0148">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Tipo de Entidad *</label>
@@ -195,21 +217,21 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Nombre de la Institución *</label>
-                            <input type="text" class="form-control" name="nombre_institucion" required>
+                            <input type="text" class="form-control" name="nombre_institucion" required placeholder="Ej. Caja Popular San Juan S.A.">
                         </div>
                         
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Código Postal</label>
-                            <input type="text" class="form-control" name="codigo_postal" id="inputCP" maxlength="5" placeholder="Ej. 01000">
+                            <input type="text" class="form-control" name="codigo_postal" id="inputCP" maxlength="5" placeholder="Ej. 44100">
                             <div id="cpFeedback" class="form-text text-danger d-none">Código postal no encontrado.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Estado de la República *</label>
-                            <input type="text" class="form-control" name="estado_republica" id="inputEstado" readonly required>
+                            <input type="text" class="form-control" name="estado_republica" id="inputEstado" readonly required placeholder="Ej. Jalisco">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Delegación o Municipio</label>
-                            <input type="text" class="form-control" name="municipio" id="inputMunicipio" readonly>
+                            <input type="text" class="form-control" name="municipio" id="inputMunicipio" readonly placeholder="Ej. Guadalajara">
                         </div>
                         
                         <div class="col-md-6">
@@ -231,6 +253,98 @@
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-success">Guardar Socio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Socio -->
+<div class="modal fade" id="editarSocioModal" tabindex="-1" aria-labelledby="editarSocioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark" id="editarSocioModalLabel">Editar Socio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="formEditarSocio" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Clave CONDUSEF *</label>
+                            <input type="text" class="form-control" name="clave_condusef" id="edit_clave_condusef" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tipo de Entidad *</label>
+                            <select class="form-select" name="tipo_entidad" id="edit_tipo_entidad" required>
+                                <option value="">Selecciona un tipo...</option>
+                                {% for val, label in tipos_entidad %}
+                                    <option value="{{ val }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nombre de la Institución *</label>
+                            <input type="text" class="form-control" name="nombre_institucion" id="edit_nombre_institucion" required>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Código Postal</label>
+                            <input type="text" class="form-control" name="codigo_postal" id="edit_inputCP" maxlength="5">
+                            <div id="edit_cpFeedback" class="form-text text-danger d-none">Código postal no encontrado.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Estado de la República *</label>
+                            <input type="text" class="form-control" name="estado_republica" id="edit_inputEstado" readonly required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Delegación o Municipio</label>
+                            <input type="text" class="form-control" name="municipio" id="edit_inputMunicipio" readonly>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Colonia</label>
+                            <select class="form-select" name="colonia" id="edit_selectColonia">
+                                <option value="">Selecciona una colonia...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Estatus</label>
+                            <select class="form-select" name="estatus" id="edit_estatus">
+                                {% for val, label in estatus_disponibles %}
+                                    <option value="{{ val }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Actualizar Socio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar Socio -->
+<div class="modal fade" id="eliminarSocioModal" tabindex="-1" aria-labelledby="eliminarSocioModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="eliminarSocioModalLabel">Eliminar Socio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="formEliminarSocio" action="">
+                {% csrf_token %}
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-1 mb-3"></i>
+                    <p class="mb-0">¿Estás seguro de que deseas eliminar a la institución <strong id="eliminarNombreInstitucion"></strong>? Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
                 </div>
             </form>
         </div>
@@ -283,6 +397,92 @@ document.addEventListener('DOMContentLoaded', function() {
                     cpFeedback.classList.remove('d-none');
                 });
         }
+    });
+
+    // Lógica para Modal Editar
+    const editInputCP = document.getElementById('edit_inputCP');
+    const editInputEstado = document.getElementById('edit_inputEstado');
+    const editInputMunicipio = document.getElementById('edit_inputMunicipio');
+    const editSelectColonia = document.getElementById('edit_selectColonia');
+    const editCpFeedback = document.getElementById('edit_cpFeedback');
+
+    document.querySelectorAll('.btn-editar').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const clave = this.dataset.clave;
+            const nombre = this.dataset.nombre;
+            const tipo = this.dataset.tipo;
+            const cp = this.dataset.cp;
+            const estado = this.dataset.estado;
+            const municipio = this.dataset.municipio;
+            const colonia = this.dataset.colonia;
+            const estatus = this.dataset.estatus;
+
+            document.getElementById('formEditarSocio').action = `/socios/editar/${id}/`;
+            document.getElementById('edit_clave_condusef').value = clave;
+            document.getElementById('edit_nombre_institucion').value = nombre;
+            document.getElementById('edit_tipo_entidad').value = tipo;
+            document.getElementById('edit_inputCP').value = cp;
+            document.getElementById('edit_inputEstado').value = estado;
+            document.getElementById('edit_inputMunicipio').value = municipio;
+            document.getElementById('edit_estatus').value = estatus;
+
+            // Para colonia, crear la opción y seleccionarla
+            editSelectColonia.innerHTML = '<option value="">Selecciona una colonia...</option>';
+            if (colonia) {
+                const option = document.createElement('option');
+                option.value = colonia;
+                option.textContent = colonia;
+                editSelectColonia.appendChild(option);
+                editSelectColonia.value = colonia;
+            }
+        });
+    });
+
+    // Lógica para CP en Modal Editar (igual que Agregar)
+    editInputCP.addEventListener('input', function() {
+        const cp = this.value.trim();
+        
+        editInputEstado.value = '';
+        editInputMunicipio.value = '';
+        editSelectColonia.innerHTML = '<option value="">Selecciona una colonia...</option>';
+        editCpFeedback.classList.add('d-none');
+
+        if (cp.length === 5) {
+            fetch(`/socios/buscar-cp/?cp=${cp}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('CP no encontrado');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    editInputEstado.value = data.estado || '';
+                    editInputMunicipio.value = data.municipio || '';
+                    
+                    data.colonias.forEach(colonia => {
+                        const option = document.createElement('option');
+                        option.value = colonia;
+                        option.textContent = colonia;
+                        editSelectColonia.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    editCpFeedback.classList.remove('d-none');
+                });
+        }
+    });
+
+    // Lógica para Modal Eliminar
+    document.querySelectorAll('.btn-eliminar').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const nombre = this.dataset.nombre;
+            
+            document.getElementById('formEliminarSocio').action = `/socios/eliminar/${id}/`;
+            document.getElementById('eliminarNombreInstitucion').textContent = nombre;
+        });
     });
 });
 </script>

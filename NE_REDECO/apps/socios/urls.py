@@ -5,4 +5,6 @@ urlpatterns = [
     path('', views.lista_socios, name='lista_socios'),
     path('buscar-cp/', views.buscar_cp, name='buscar_cp'),
     path('agregar/', views.agregar_socio, name='agregar_socio'),
+    path('editar/<int:pk>/', views.editar_socio, name='editar_socio'),
+    path('eliminar/<int:pk>/', views.eliminar_socio, name='eliminar_socio'),
 ]
