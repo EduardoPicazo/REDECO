@@ -5,5 +5,4 @@
 # Ignorar tokens de acceso confidenciales
 *.txt
 
-venv/
-
+.DS_Store
